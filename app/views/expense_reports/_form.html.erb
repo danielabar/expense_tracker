@@ -37,7 +37,7 @@
     <%# Also on issue on new: User selects a file and submits form with some other validation error %>
     <%# Partial solution: Use `persisted?` rather than `attached?` so it doesn't attempt to render download link for file that wasn't actually uploaded %>
     <%# BUT this introduces a new problem: If user previously submitted form with an attachment and validation errors, the file selection is lost and  they have to select file again - bad UX %>
-    <% if expense_report.receipt.attached? %>
+    <% if expense_report.receipt.persisted? %>
       <div class="mt-2">
         <strong class="block font-medium mb-1">Current Receipt:</strong>
         <%= link_to expense_report.receipt.filename, expense_report.receipt, class: "text-gray-700 underline hover:no-underline" %>
