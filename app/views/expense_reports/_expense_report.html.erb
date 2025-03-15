@@ -1,0 +1,18 @@
+<div id="<%= dom_id expense_report %>" class="w-full sm:w-auto my-5 space-y-5">
+  <div>
+    <strong class="block font-medium mb-1">Amount:</strong>
+    <%= expense_report.amount %>
+  </div>
+  <div>
+    <strong class="block font-medium mb-1">Description:</strong>
+    <%= expense_report.description %>
+  </div>
+  <div>
+    <strong class="block font-medium mb-1">Incurred on:</strong>
+    <%= expense_report.incurred_on %>
+  </div>
+  <div>
+    <strong class="block font-medium mb-1">Receipt:</strong>
+    <%= link_to expense_report.receipt.filename, expense_report.receipt, class: "text-gray-700 underline hover:no-underline" if expense_report.receipt.attached? %>
+  </div>
+</div>

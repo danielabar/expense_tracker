@@ -1,0 +1,51 @@
+<%= form_with(model: expense_report, class: "contents") do |form| %>
+  <% if expense_report.errors.any? %>
+    <div id="error_explanation" class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-md mt-3">
+      <h2><%= pluralize(expense_report.errors.count, "error") %> prohibited this expense_report from being saved:</h2>
+
+      <ul class="list-disc ml-6">
+        <% expense_report.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="my-5">
+    <%= form.label :amount %>
+    <%= form.text_field :amount, class: ["block shadow-sm rounded-md border px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": expense_report.errors[:amount].none?, "border-red-400 focus:outline-red-600": expense_report.errors[:amount].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :description %>
+    <%= form.textarea :description, rows: 4, class: ["block shadow-sm rounded-md border px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": expense_report.errors[:description].none?, "border-red-400 focus:outline-red-600": expense_report.errors[:description].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%= form.label :incurred_on %>
+    <%= form.date_field :incurred_on, class: ["block shadow-sm rounded-md border px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": expense_report.errors[:incurred_on].none?, "border-red-400 focus:outline-red-600": expense_report.errors[:incurred_on].any?}] %>
+  </div>
+
+  <div class="my-5">
+    <%# Tailwind’s file:* variant allows you to style just the button part %>
+    <%= form.label :receipt %>
+    <%= form.file_field :receipt, class: "block w-full cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-700 shadow-sm file:mr-4 file:rounded-md file:border file:border-gray-400 file:bg-gray-200 file:px-4 file:py-1.5 file:text-gray-800 file:font-medium file:cursor-pointer hover:file:bg-gray-300 focus:outline-blue-600" %>
+
+    <%# Display to user their current attachment if there is one - this causes issues if there are validation errors, for example on update %>
+    <%# Cannot get a signed_id for a new record %>
+    <%# It's an issue on edit: When there already is an attachment, user selects a new one, and has some other validation error in the form %>
+    <%# Also on issue on new: User selects a file and submits form with some other validation error %>
+    <%# Partial solution: Use `persisted?` rather than `attached?` so it doesn't attempt to render download link for file that wasn't actually uploaded %>
+    <%# BUT this introduces a new problem: If user previously submitted form with an attachment and validation errors, the file selection is lost and  they have to select file again - bad UX %>
+    <% if expense_report.receipt.attached? %>
+      <div class="mt-2">
+        <strong class="block font-medium mb-1">Current Receipt:</strong>
+        <%= link_to expense_report.receipt.filename, expense_report.receipt, class: "text-gray-700 underline hover:no-underline" %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="inline">
+    <%= form.submit class: "w-full sm:w-auto rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>
+  </div>
+<% end %>

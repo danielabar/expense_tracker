@@ -1,0 +1,54 @@
+<% content_for :title, "Expense reports" %>
+
+<div class="w-full">
+  <% if notice.present? %>
+    <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-md inline-block" id="notice"><%= notice %></p>
+  <% end %>
+
+  <div class="flex justify-between items-center mb-5">
+    <h1 class="font-bold text-4xl">Expense Reports</h1>
+    <%= link_to "New Expense Report", new_expense_report_path, class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium" %>
+  </div>
+
+  <% if @expense_reports.any? %>
+    <div class="overflow-x-auto bg-white shadow-md rounded-lg">
+      <table class="w-full border-collapse border border-gray-200">
+        <thead class="bg-gray-100 text-gray-700">
+          <tr>
+            <th class="px-4 py-3 text-left border-b">Incurred On</th>
+            <th class="px-4 py-3 text-left border-b">Amount</th>
+            <th class="px-4 py-3 text-left border-b">Description</th>
+            <th class="px-4 py-3 text-left border-b">Receipt</th>
+            <th class="px-4 py-3 text-center border-b">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <% @expense_reports.each do |expense_report| %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-3"><%= expense_report.incurred_on.strftime("%b %d, %Y") %></td>
+              <td class="px-4 py-3"><%= number_to_currency(expense_report.amount) %></td>
+              <td class="px-4 py-3 truncate max-w-xs"><%= expense_report.description %></td>
+              <td class="px-4 py-3">
+                <% if expense_report.receipt.attached? %>
+                  <%= link_to "View", expense_report.receipt, class: "text-blue-600 hover:underline" %>
+                <% else %>
+                  <span class="text-gray-400">No receipt</span>
+                <% end %>
+              </td>
+              <td class="px-4 py-3 text-center space-x-2">
+                <%= link_to "Show", expense_report, class: "px-3 py-1 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200" %>
+                <%= link_to "Edit", edit_expense_report_path(expense_report), class: "px-3 py-1 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200" %>
+                <%= button_to "Delete", expense_report, method: :delete,
+                  class: "px-3 py-1 text-white bg-rose-600 rounded-md hover:bg-rose-500",
+                  data: { turbo_confirm: "Are you sure?" },
+                  form: { class: "inline-block" } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-center my-10">No expense reports found.</p>
+  <% end %>
+</div>
