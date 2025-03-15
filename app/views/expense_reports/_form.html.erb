@@ -29,7 +29,7 @@
   <div class="my-5">
     <%# Tailwind’s file:* variant allows you to style just the button part %>
     <%= form.label :receipt %>
-    <%= form.file_field :receipt, class: "block w-full cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-700 shadow-sm file:mr-4 file:rounded-md file:border file:border-gray-400 file:bg-gray-200 file:px-4 file:py-1.5 file:text-gray-800 file:font-medium file:cursor-pointer hover:file:bg-gray-300 focus:outline-blue-600" %>
+    <%= form.file_field :receipt, direct_upload: true, class: "block w-full cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-700 shadow-sm file:mr-4 file:rounded-md file:border file:border-gray-400 file:bg-gray-200 file:px-4 file:py-1.5 file:text-gray-800 file:font-medium file:cursor-pointer hover:file:bg-gray-300 focus:outline-blue-600" %>
 
     <%# Display to user their current attachment if there is one - this causes issues if there are validation errors, for example on update %>
     <%# Cannot get a signed_id for a new record %>

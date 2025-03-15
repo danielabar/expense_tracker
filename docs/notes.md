@@ -36,9 +36,16 @@ bin/dev
 - To understand the issue of file upload in a form with validation error, we must first understand how it works when things go well
 - First part of solution is to avoid 500 error - use `persisted?` rather than `attached?` which is only true when there actually exists a file to link to. Avoids error but not great UX because user has to select their file again.
 - Second part of solution: enable direct upload so that file will be uploaded, even in the event of a validation error (it won't be associated to the model in the database, but having it uploaded will help to recover from validation errors gracefully)
+  - Follow instructions to enable direct uploads: https://guides.rubyonrails.org/active_storage_overview.html#direct-uploads OR https://api.rubyonrails.org/files/activestorage/README_md.html
+  - Try error case again - notice two xhr requests running to create/upload file (first POST gets a signature ID, see Explanation below)
+  - Then run `tree` command on `storage` dir, notice this time, there is a new file there (even though - confirm by checking in database, there are no active_storage_... records populated)
 - Third part: Add hidden `expense_report.receipt.signed_id`, but only if `attached?`, so that the same selected file request gets submitted again after user fixes validation errors, and then it gets associated with model on saving (this works because this file has already been uploaded to storage from previous form submission attempt)
-- Fourth part: Stimulus controller (or some other logic) to let the user know that we still have their file name in memory so they don't need to select the file again (because otherwise, user doesn't realize that we've "saved" the file for them)
+  - i.e. because of direct upload, this `signed_id` corresponds to an uploaded file in storage, so if submitted again, Rails will be able to associate this file to the expense_report model
+- Fourth part: Stimulus controller (or some other logic) to let the user know that we still have their file name in memory so they don't need to select the file again (because otherwise, user doesn't realize that we've "saved" the file for them).
+  - Note that filename is available on the model in memory, even if validation error: `expense_report.receipt.blob.filename`
+  - Might need some JavaScript to manipulate the native file input
 - Fifth part (optional): Extract to partial for re-usability if project has many places with file uploads
+- ASIDE: Periodically run cleanup job because may end up with files in storage not associated to any model if user abandons the form (consequence of using direct uploads)
 
 [Reference PR](https://github.com/rubyforgood/human-essentials/pull/4937)
 
@@ -306,3 +313,97 @@ storage
     └── r2
         └── kvr2sc0y9iy35x3ryklxi6kpf22h
 ```
+
+## Direct Upload
+
+xhr from browser dev tools Network tab:
+
+Request:
+```
+curl 'http://localhost:3000/rails/active_storage/direct_uploads' \
+  -H 'Accept: application/json' \
+  -H 'Accept-Language: en-US,en;q=0.9' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Type: application/json' \
+  -H 'Origin: http://localhost:3000' \
+  -H 'Referer: http://localhost:3000/expense_reports/new' \
+  -H 'X-CSRF-Token: abc123' \
+  -H 'X-Requested-With: XMLHttpRequest' \
+  --data-raw '{"blob":{"filename":"dbase.pdf","content_type":"application/pdf","byte_size":7171,"checksum":"PnVMB8Sc/us7Jy4wxuy07w=="}}'
+```
+
+Response:
+```
+{
+  "id": 5,
+  "key": "8xfnpswh8l48kha8wzb2j0uh1sdw",
+  "filename": "dbase.pdf",
+  "content_type": "application/pdf",
+  "metadata": {},
+  "service_name": "local",
+  "byte_size": 7171,
+  "checksum": "PnVMB8Sc/us7Jy4wxuy07w==",
+  "created_at": "2025-03-15T20:44:48.066Z",
+  "attachable_sgid": "eyJfcmFpbHMiOnsiZGF0YSI6ImdpZDovL2V4cGVuc2UtdHJhY2tlci9BY3RpdmVTdG9yYWdlOjpCbG9iLzU_ZXhwaXJlc19pbiIsInB1ciI6ImF0dGFjaGFibGUifX0=--d12eac68d7948a154543370e549396162af9a6c4",
+  "signed_id": "eyJfcmFpbHMiOnsiZGF0YSI6NSwicHVyIjoiYmxvYl9pZCJ9fQ==--8c80be4316af3a6b0661b02fcdde3beaae3c8139",
+  "direct_upload": {
+    "url": "http://localhost:3000/rails/active_storage/disk/eyJfcmFpbHMiOnsiZGF0YSI6eyJrZXkiOiI4eGZucHN3aDhsNDhraGE4d3piMmowdWgxc2R3IiwiY29udGVudF90eXBlIjoiYXBwbGljYXRpb24vcGRmIiwiY29udGVudF9sZW5ndGgiOjcxNzEsImNoZWNrc3VtIjoiUG5WTUI4U2MvdXM3Snk0d3h1eTA3dz09Iiwic2VydmljZV9uYW1lIjoibG9jYWwifSwiZXhwIjoiMjAyNS0wMy0xNVQyMDo0OTo0OC4wNzBaIiwicHVyIjoiYmxvYl90b2tlbiJ9fQ==--cc1e35c4e9366ffd04d4262b5688e62ca744f52f",
+    "headers": {
+      "Content-Type": "application/pdf"
+    }
+  }
+}
+```
+
+```
+curl 'http://localhost:3000/rails/active_storage/disk/eyJfcmFpbHMiOnsiZGF0YSI6eyJrZXkiOiI4eGZucHN3aDhsNDhraGE4d3piMmowdWgxc2R3IiwiY29udGVudF90eXBlIjoiYXBwbGljYXRpb24vcGRmIiwiY29udGVudF9sZW5ndGgiOjcxNzEsImNoZWNrc3VtIjoiUG5WTUI4U2MvdXM3Snk0d3h1eTA3dz09Iiwic2VydmljZV9uYW1lIjoibG9jYWwifSwiZXhwIjoiMjAyNS0wMy0xNVQyMDo0OTo0OC4wNzBaIiwicHVyIjoiYmxvYl90b2tlbiJ9fQ==--cc1e35c4e9366ffd04d4262b5688e62ca744f52f' \
+  -X 'PUT' \
+  -H 'Accept: */*' \
+  -H 'Accept-Language: en-US,en;q=0.9' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Type: application/pdf' \
+  -H 'Origin: http://localhost:3000' \
+  -H 'Referer: http://localhost:3000/expense_reports/new' \
+  --data-raw $'%PDF-1.3\n%Äåòåë§ó ...\n'
+```
+
+### Explanation
+
+When you enable **direct uploads** in Rails Active Storage, you will see **two XHR requests** in the browser’s DevTools Network tab. Each serves a different purpose:
+
+**First Request: Create a Blob Record**
+
+**Endpoint:** `POST /rails/active_storage/direct_uploads`
+**Purpose:** Registers metadata about the file with Active Storage before the actual upload.
+
+Breakdown of the first request:
+
+- This request sends JSON data describing the file (`filename`, `content_type`, `byte_size`, and `checksum`).
+- Rails Active Storage responds with a **signed upload URL** and metadata required for the second request.
+
+What Happens?
+- Active Storage creates a **Blob record** in the database (but not yet attached to a model).
+- It generates a **pre-signed URL** for direct upload to the storage service (local disk, S3, etc.).
+- The client (browser) receives this URL and proceeds with the actual upload.
+
+Second Request: Upload File to Storage
+**Endpoint:** `PUT /rails/active_storage/disk/:signed_id` (for local storage)
+**Purpose:** Uploads the actual file to the storage backend.
+
+Breakdown of the second request:
+- The browser sends the **file contents** using a `PUT` request.
+- The upload happens **directly** to the storage service (local disk, S3, etc.), bypassing Rails controllers.
+- If using **S3 or another cloud provider**, this request would go directly to S3 instead of your Rails app.
+
+What Happens?
+- The file is stored in the backend.
+- Once the upload is complete, the **blob is ready to be attached** to a model.
+
+Why Two Requests?
+1. The **first request** registers the file and gets a **pre-signed URL**.
+2. The **second request** uses that URL to upload the file **directly** to storage.
+   - This prevents large file uploads from being **proxied through Rails**, improving performance.
+
+What Happens After Upload?
+- When you **submit the form**, Rails attaches the **uploaded blob** to your model using the `ActiveStorage::Attachment` table.
+- If the form submission fails (e.g., validation error), the uploaded blob **remains in storage** but unlinked. Rails has a cleanup task for orphaned blobs.
