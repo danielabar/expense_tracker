@@ -26,25 +26,33 @@
     <%= form.date_field :incurred_on, class: ["block shadow-sm rounded-md border px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": expense_report.errors[:incurred_on].none?, "border-red-400 focus:outline-red-600": expense_report.errors[:incurred_on].any?}] %>
   </div>
 
-  <div class="my-5">
-    <%# Tailwind’s file:* variant allows you to style just the button part %>
+  <div class="my-5" data-controller="file-upload">
     <%= form.label :receipt %>
-    <%= form.file_field :receipt, direct_upload: true, class: "block w-full cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-700 shadow-sm file:mr-4 file:rounded-md file:border file:border-gray-400 file:bg-gray-200 file:px-4 file:py-1.5 file:text-gray-800 file:font-medium file:cursor-pointer hover:file:bg-gray-300 focus:outline-blue-600" %>
 
     <%# If the receipt is attached but not persisted it means user previously attempted to upload but encountered form validation errors %>
     <%# Let's hang on to that id for them in a hidden field so file will be persisted on next successful form submission %>
     <%# This works to reference signed_id because of enabling Active Storage Direct Uploads, the blob is there in the database and in the file system %>
-    <% if expense_report.receipt.attached? && !expense_report.receipt.persisted?%>
-      <%= form.hidden_field :receipt, value: expense_report.receipt.signed_id %>
+    <% if expense_report.receipt.attached? && !expense_report.receipt.persisted? %>
+      <%= form.hidden_field :receipt, value: expense_report.receipt.signed_id, data: { file_upload_target: "hiddenField" } %>
     <% end %>
 
-    <%# Display to user their current attachment if there is one - this causes issues if there are validation errors, for example on update %>
-    <%# Cannot get a signed_id for a new record %>
-    <%# It's an issue on edit: When there already is an attachment, user selects a new one, and has some other validation error in the form %>
-    <%# Also on issue on new: User selects a file and submits form with some other validation error %>
-    <%# Partial solution: Use `persisted?` rather than `attached?` so it doesn't attempt to render download link for file that wasn't actually uploaded %>
-    <%# BUT this introduces a new problem: If user previously submitted form with an attachment and validation errors, the file selection is lost %>
-    <%# and they have to select file again - bad UX. %>
+    <div class="relative w-full">
+      <%# Actual file input (hidden but still functional) %>
+      <%= form.file_field :receipt, direct_upload: true,
+            data: { file_upload_target: "input", filename: expense_report.receipt.filename, action: "change->file-upload#handleNewFileSelection" },
+            class: "absolute inset-0 w-full opacity-0 cursor-pointer" %>
+
+      <%# Custom label that mimics a file input display %>
+      <%# Tailwind’s file:* variant allows you to style just the button part - FIXME not working style-wise for custom div %>
+      <div data-file-upload-target="label"
+          class="block w-full cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-700 shadow-sm
+                  file:mr-4 file:rounded-md file:border file:border-gray-400 file:bg-gray-200 file:px-4 file:py-1.5
+                  file:text-gray-800 file:font-medium file:cursor-pointer hover:file:bg-gray-300 focus:outline-blue-600">
+        <%= expense_report.receipt.attached? && !expense_report.receipt.persisted? ? expense_report.receipt.filename.to_s : "Choose a file" %>
+      </div>
+    </div>
+
+    <%# Display to user their current attachment if there is one %>
     <% if expense_report.receipt.persisted? %>
       <div class="mt-2">
         <strong class="block font-medium mb-1">Current Receipt:</strong>
