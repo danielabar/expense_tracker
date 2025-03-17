@@ -35,16 +35,27 @@ bin/dev
 - Demo error on new + attach + validation error
 - Demo error on edit + attach + validation error
 - To understand the issue of file upload in a form with validation error, we must first understand how it works when things go well
+
+### Solution Part 1
 - First part of solution is to avoid 500 error - use `persisted?` rather than `attached?` which is only true when there actually exists a file to link to. Avoids error but not great UX because user has to select their file again.
+
+### Solution Part 2
 - Second part of solution: enable direct upload so that file will be uploaded, even in the event of a validation error (it won't be associated to the model in the database, but having it uploaded will help to recover from validation errors gracefully)
   - Follow instructions to enable direct uploads: https://guides.rubyonrails.org/active_storage_overview.html#direct-uploads OR https://api.rubyonrails.org/files/activestorage/README_md.html
   - Try error case again - notice two xhr requests running to create/upload file (first POST gets a signature ID, see Explanation below)
   - Then run `tree` command on `storage` dir, notice this time, there is a new file there (even though - confirm by checking in database, there are no active_storage_... records populated)
-- Third part: Add hidden `expense_report.receipt.signed_id`, but only if `attached?`, so that the same selected file request gets submitted again after user fixes validation errors, and then it gets associated with model on saving (this works because this file has already been uploaded to storage from previous form submission attempt)
+
+### Solution Part 3
+- Third part: Add hidden `expense_report.receipt.signed_id`, but only if `attached?` but not `persisted?`, so that the same selected file request gets submitted again after user fixes validation errors, and then it gets associated with model on saving (this works because this file has already been uploaded to storage from previous form submission attempt AND also populated blob table in database):
+  -IMPORTANT: It creates a new blob in database table `active_storage_blobs`, even when validation fails, THIS is what allows us to get a signed_id even if model not yet associated with the attachment.
   - i.e. because of direct upload, this `signed_id` corresponds to an uploaded file in storage, so if submitted again, Rails will be able to associate this file to the expense_report model
+
+### Solution Part 4
 - Fourth part: Stimulus controller (or some other logic) to let the user know that we still have their file name in memory so they don't need to select the file again (because otherwise, user doesn't realize that we've "saved" the file for them).
   - Note that filename is available on the model in memory, even if validation error: `expense_report.receipt.blob.filename`
   - Might need some JavaScript to manipulate the native file input
+
+### Solution Part 5
 - Fifth part (optional): Extract to partial for re-usability if project has many places with file uploads
 - ASIDE: Periodically run cleanup job because may end up with files in storage not associated to any model if user abandons the form (consequence of using direct uploads)
 
@@ -408,3 +419,42 @@ Why Two Requests?
 What Happens After Upload?
 - When you **submit the form**, Rails attaches the **uploaded blob** to your model using the `ActiveStorage::Attachment` table.
 - If the form submission fails (e.g., validation error), the uploaded blob **remains in storage** but unlinked. Rails has a cleanup task for orphaned blobs.
+
+### Direct Upload + Validation Error + Debug Session
+
+IMPORTANT: It creates a new blob in database table `active_storage_blobs`, even when validation fails, THIS is what allows us to get a signed_id even if model not yet associated with the attachment.
+
+```
+sqlite> select * from active_storage_blobs;
+id  key                           filename                             content_type     metadata                             service_name  byte_size  checksum                  created_at
+--  ----------------------------  -----------------------------------  ---------------  -----------------------------------  ------------  ---------  ------------------------  --------------------------
+...
+NEW RECORD!
+10  87oksu56vhvq8gvjd15goxq6u74c  wrong_headers.csv                    text/csv                                              local         105        gefO5tr4Nq09vqRhnJDU9Q==  2025-03-17 12:47:04.152308
+```
+
+Debug:
+```
+(ruby) @expense_report.receipt.blob
+#<ActiveStorage::Blob:0x0000000134a96a48
+ id: 10,
+ key: "87oksu56vhvq8gvjd15goxq6u74c",
+ filename: "wrong_headers.csv",
+ content_type: "text/csv",
+ metadata: {"identified" => true},
+ service_name: "local",
+ byte_size: 105,
+ checksum: "gefO5tr4Nq09vqRhnJDU9Q==",
+ created_at: "2025-03-17 12:47:04.152308000 +0000">
+(ruby) @expense_report.receipt.blob.signed_id
+"eyJfcmFpbHMiOnsiZGF0YSI6MTAsInB1ciI6ImJsb2JfaWQifX0=--1077b88e6c9a43cc6d372751ccba27748a22b9a7"
+
+(ruby) @expense_report.receipt.signed_id
+"eyJfcmFpbHMiOnsiZGF0YSI6MTAsInB1ciI6ImJsb2JfaWQifX0=--1077b88e6c9a43cc6d372751ccba27748a22b9a7"
+
+# Also have access to filename
+(ruby) @expense_report.receipt.blob.filename
+#<ActiveStorage::Filename:0x0000000136dab588 @filename="wrong_headers.csv">
+(ruby) @expense_report.receipt.filename
+#<ActiveStorage::Filename:0x00000001377b3bc0 @filename="wrong_headers.csv">
+```

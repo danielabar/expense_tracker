@@ -31,12 +31,20 @@
     <%= form.label :receipt %>
     <%= form.file_field :receipt, direct_upload: true, class: "block w-full cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-700 shadow-sm file:mr-4 file:rounded-md file:border file:border-gray-400 file:bg-gray-200 file:px-4 file:py-1.5 file:text-gray-800 file:font-medium file:cursor-pointer hover:file:bg-gray-300 focus:outline-blue-600" %>
 
+    <%# If the receipt is attached but not persisted it means user previously attempted to upload but encountered form validation errors %>
+    <%# Let's hang on to that id for them in a hidden field so file will be persisted on next successful form submission %>
+    <%# This works to reference signed_id because of enabling Active Storage Direct Uploads, the blob is there in the database and in the file system %>
+    <% if expense_report.receipt.attached? && !expense_report.receipt.persisted?%>
+      <%= form.hidden_field :receipt, value: expense_report.receipt.signed_id %>
+    <% end %>
+
     <%# Display to user their current attachment if there is one - this causes issues if there are validation errors, for example on update %>
     <%# Cannot get a signed_id for a new record %>
     <%# It's an issue on edit: When there already is an attachment, user selects a new one, and has some other validation error in the form %>
     <%# Also on issue on new: User selects a file and submits form with some other validation error %>
     <%# Partial solution: Use `persisted?` rather than `attached?` so it doesn't attempt to render download link for file that wasn't actually uploaded %>
-    <%# BUT this introduces a new problem: If user previously submitted form with an attachment and validation errors, the file selection is lost and  they have to select file again - bad UX %>
+    <%# BUT this introduces a new problem: If user previously submitted form with an attachment and validation errors, the file selection is lost %>
+    <%# and they have to select file again - bad UX. %>
     <% if expense_report.receipt.persisted? %>
       <div class="mt-2">
         <strong class="block font-medium mb-1">Current Receipt:</strong>
