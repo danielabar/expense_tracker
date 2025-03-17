@@ -21,10 +21,11 @@ bin/rails g scaffold ExpenseReport \
   receipt:attachment
 
 # modify migration to add constraints
+bin/rails db:migrate
+
 # modify model to add corresponding validations
 # modify form partial to conditionally display file attachment if one already exists
 # (useful when editing so user can double-check what they already have)
-bin/rails db:migrate
 
 # Run server
 bin/dev
