@@ -45,7 +45,7 @@
       <%# Styled Text-like Input (mimicking a text field) %>
       <div data-file-upload-target="label"
           class="flex-1 px-3 py-2 text-gray-700 truncate">
-        <%= expense_report.receipt.attached? && !expense_report.receipt.persisted? ? expense_report.receipt.filename.to_s : "Choose a file" %>
+        <%# Label population is handled by JavaScript: app/javascript/controllers/file_upload_controller.js  %>
       </div>
 
       <%# Styled Button %>
