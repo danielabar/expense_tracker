@@ -36,19 +36,21 @@
       <%= form.hidden_field :receipt, value: expense_report.receipt.signed_id, data: { file_upload_target: "hiddenField" } %>
     <% end %>
 
-    <div class="relative w-full">
-      <%# Actual file input (hidden but still functional) %>
+    <div class="relative w-full flex items-center border border-gray-300 bg-gray-50 rounded-md shadow-sm">
+      <%# Native file input (hidden but still functional) %>
       <%= form.file_field :receipt, direct_upload: true,
             data: { file_upload_target: "input", filename: expense_report.receipt.filename, action: "change->file-upload#handleNewFileSelection" },
             class: "absolute inset-0 w-full opacity-0 cursor-pointer" %>
 
-      <%# Custom label that mimics a file input display %>
-      <%# Tailwind’s file:* variant allows you to style just the button part - FIXME not working style-wise for custom div %>
+      <%# Styled Text-like Input (mimicking a text field) %>
       <div data-file-upload-target="label"
-          class="block w-full cursor-pointer rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-700 shadow-sm
-                  file:mr-4 file:rounded-md file:border file:border-gray-400 file:bg-gray-200 file:px-4 file:py-1.5
-                  file:text-gray-800 file:font-medium file:cursor-pointer hover:file:bg-gray-300 focus:outline-blue-600">
+          class="flex-1 px-3 py-2 text-gray-700 truncate">
         <%= expense_report.receipt.attached? && !expense_report.receipt.persisted? ? expense_report.receipt.filename.to_s : "Choose a file" %>
+      </div>
+
+      <%# Styled Button %>
+      <div class="px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-r-md cursor-pointer hover:bg-gray-300">
+        Browse
       </div>
     </div>
 

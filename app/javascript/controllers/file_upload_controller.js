@@ -10,6 +10,8 @@ export default class extends Controller {
   }
 
   updateLabel() {
+    // temp debug
+    console.log("=== updateLabel ===");
     // Check if a file is already selected (after validation error)
     if (this.hasHiddenFieldTarget && this.hiddenFieldTarget.value) {
       this.labelTarget.textContent = this.inputTarget.dataset.filename;
@@ -19,6 +21,8 @@ export default class extends Controller {
   }
 
   handleNewFileSelection() {
+    // temp debug
+    console.log("=== handleNewFileSelection ===");
     // When user selects a new file, update the label
     if (this.inputTarget.files.length > 0) {
       this.labelTarget.textContent = this.inputTarget.files[0].name;

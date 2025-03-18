@@ -35,6 +35,10 @@ bin/dev
 - Demo error on new + attach + validation error
 - Demo error on edit + attach + validation error
 - To understand the issue of file upload in a form with validation error, we must first understand how it works when things go well
+  - database tables (one to reference blob/file, another to associate model to blob)
+  - file system (local, S3, R2, etc)
+  - debug inspect `@expense_report.receipt.blob` during happy path - notice `id` populated, notice we can call `signed_id` method on it
+  - debug inspect `@expense_report.receipt.blob` during validation error - notice `id` is nil, and calling `signed_id` errors on "new record"
 
 ### Solution Part 1
 - First part of solution is to avoid 500 error - use `persisted?` rather than `attached?` which is only true when there actually exists a file to link to. Avoids error but not great UX because user has to select their file again.
@@ -43,7 +47,8 @@ bin/dev
 - Second part of solution: enable direct upload so that file will be uploaded, even in the event of a validation error (it won't be associated to the model in the database, but having it uploaded will help to recover from validation errors gracefully)
   - Follow instructions to enable direct uploads: https://guides.rubyonrails.org/active_storage_overview.html#direct-uploads OR https://api.rubyonrails.org/files/activestorage/README_md.html
   - Try error case again - notice two xhr requests running to create/upload file (first POST gets a signature ID, see Explanation below)
-  - Then run `tree` command on `storage` dir, notice this time, there is a new file there (even though - confirm by checking in database, there are no active_storage_... records populated)
+  - Then run `tree` command on `storage` dir, notice this time, there is a new file there
+  - Check in database - any blob?
 
 ### Solution Part 3
 - Third part: Add hidden `expense_report.receipt.signed_id`, but only if `attached?` but not `persisted?`, so that the same selected file request gets submitted again after user fixes validation errors, and then it gets associated with model on saving (this works because this file has already been uploaded to storage from previous form submission attempt AND also populated blob table in database):
