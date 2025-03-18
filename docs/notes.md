@@ -58,11 +58,13 @@ bin/dev
 ### Solution Part 4
 - Fourth part: Let the user know that we still have their file name in memory so they don't need to select the file again (because otherwise, user doesn't realize that we've "saved" the file for them).
   - Note that filename is available on the model in memory, even if validation error: `expense_report.receipt.filename`
-  - Will need some JavaScript to manipulate the native file input because unfortunately, can't simply set it's `value` property (not allowed, part of spec, reference MDN: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#notes)
+  - Unfortunately, can't simply set the native file input's `value` property (not allowed, part of spec, reference MDN: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#notes)
   - Therefore we'll need to hide the native file input and build a custom one for display purposes, and manipulate it with JavaScript - which in Rails is done with Stimulus controllers (ref: my previous post on stimulus how to)
+  - The custom file input consists of a label which looks like a text input to show file name, and a button to trigger file selection
   - If a previously uploaded file exists (but isn't persisted) - label displays the filename instead of `"Choose a file"`.
   - This makes it feel like the file is already selected without interfering with browser behavior
   - If the user selects a new file - label updates dynamically to show the new filename and new file is uploaded normally and replaces the old one.
+  - Also add accessibility to ensure keyboard user that focuses on custom file input button and hits Enter -> trigger underlying native file input selection
 
 ### Solution Part 5
 - Fifth part (optional): Extract to partial for re-usability if project has many places with file uploads
