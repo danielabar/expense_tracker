@@ -35,7 +35,7 @@
     <%# Let's hang on to that id for them in a hidden field so file will be persisted on next successful form submission %>
     <%# This works to reference signed_id because of enabling Active Storage Direct Uploads, the blob is there in the database and in the file system %>
     <% if expense_report.receipt.attached? && !expense_report.receipt.persisted? %>
-      <%= form.hidden_field :receipt, value: expense_report.receipt.signed_id, data: { file_upload_target: "hiddenField" } %>
+      <%= form.hidden_field :receipt, value: expense_report.receipt.signed_id %>
     <% end %>
 
     <div class="relative w-full flex items-center border border-gray-300 bg-gray-50 rounded-md shadow-sm">
