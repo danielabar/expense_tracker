@@ -26,6 +26,8 @@
     <%= form.date_field :incurred_on, class: ["block shadow-sm rounded-md border px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": expense_report.errors[:incurred_on].none?, "border-red-400 focus:outline-red-600": expense_report.errors[:incurred_on].any?}] %>
   </div>
 
+  <%# If a file is attached but not persisted, it means user submitted the form with a selected file but also had validation error(s) %>
+  <%# If that's the case, we update the custom file input label with the file name from the model so user realizes we still have their file %>
   <div class="my-5"
       data-controller="file-upload"
       data-file-upload-default-text-value="<%= expense_report.receipt.attached? && !expense_report.receipt.persisted? ? expense_report.receipt.blob.filename : "Choose a file" %>">
@@ -44,14 +46,13 @@
             data: { file_upload_target: "input", action: "change->file-upload#handleNewFileSelection" },
             class: "absolute inset-0 w-full opacity-0 cursor-pointer" %>
 
-      <%# Styled Text-like Input (mimicking a text field) %>
+      <%# Custom file input selector that will render on top of the hidden native file input %>
+      <%# This allows us to target it with JavaScript to pre-populate a file name if user previously selected one %>
+      <%# and then submitted the form with validation errors %>
       <div data-file-upload-target="label"
           class="flex-1 px-3 py-2 text-gray-700 truncate">
         <%# Label population is handled by JavaScript: app/javascript/controllers/file_upload_controller.js  %>
       </div>
-
-      <%# TODO: Could this be an actual button for accessibility? %>
-      <%# Styled Button %>
       <div class="px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-r-md cursor-pointer hover:bg-gray-300">
         Browse
       </div>
