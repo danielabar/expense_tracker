@@ -35,6 +35,10 @@ bin/dev
 - Demo error on new + attach + validation error
 - Demo error on edit + attach + validation error
 - To understand the issue of file upload in a form with validation error, we must first understand how it works when things go well
+  - database tables (one to reference blob/file, another to associate model to blob)
+  - file system (local, S3, R2, etc)
+  - debug inspect `@expense_report.receipt.blob` during happy path - notice `id` populated, notice we can call `signed_id` method on it
+  - debug inspect `@expense_report.receipt.blob` during validation error - notice `id` is nil, and calling `signed_id` errors on "new record"
 
 ### Solution Part 1
 - First part of solution is to avoid 500 error - use `persisted?` rather than `attached?` which is only true when there actually exists a file to link to. Avoids error but not great UX because user has to select their file again.
@@ -43,7 +47,8 @@ bin/dev
 - Second part of solution: enable direct upload so that file will be uploaded, even in the event of a validation error (it won't be associated to the model in the database, but having it uploaded will help to recover from validation errors gracefully)
   - Follow instructions to enable direct uploads: https://guides.rubyonrails.org/active_storage_overview.html#direct-uploads OR https://api.rubyonrails.org/files/activestorage/README_md.html
   - Try error case again - notice two xhr requests running to create/upload file (first POST gets a signature ID, see Explanation below)
-  - Then run `tree` command on `storage` dir, notice this time, there is a new file there (even though - confirm by checking in database, there are no active_storage_... records populated)
+  - Then run `tree` command on `storage` dir, notice this time, there is a new file there
+  - Check in database - any blob?
 
 ### Solution Part 3
 - Third part: Add hidden `expense_report.receipt.signed_id`, but only if `attached?` but not `persisted?`, so that the same selected file request gets submitted again after user fixes validation errors, and then it gets associated with model on saving (this works because this file has already been uploaded to storage from previous form submission attempt AND also populated blob table in database):
@@ -51,9 +56,15 @@ bin/dev
   - i.e. because of direct upload, this `signed_id` corresponds to an uploaded file in storage, so if submitted again, Rails will be able to associate this file to the expense_report model
 
 ### Solution Part 4
-- Fourth part: Stimulus controller (or some other logic) to let the user know that we still have their file name in memory so they don't need to select the file again (because otherwise, user doesn't realize that we've "saved" the file for them).
-  - Note that filename is available on the model in memory, even if validation error: `expense_report.receipt.blob.filename`
-  - Might need some JavaScript to manipulate the native file input
+- Fourth part: Let the user know that we still have their file name in memory so they don't need to select the file again (because otherwise, user doesn't realize that we've "saved" the file for them).
+  - Note that filename is available on the model in memory, even if validation error: `expense_report.receipt.filename`
+  - Unfortunately, can't simply set the native file input's `value` property (not allowed, part of spec, reference MDN: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#notes)
+  - Therefore we'll need to hide the native file input and build a custom one for display purposes, and manipulate it with JavaScript - which in Rails is done with Stimulus controllers (ref: my previous post on stimulus how to)
+  - The custom file input consists of a label which looks like a text input to show file name, and a button to trigger file selection
+  - If a previously uploaded file exists (but isn't persisted) - label displays the filename instead of `"Choose a file"`.
+  - This makes it feel like the file is already selected without interfering with browser behavior
+  - If the user selects a new file - label updates dynamically to show the new filename and new file is uploaded normally and replaces the old one.
+  - Also add accessibility to ensure keyboard user that focuses on custom file input button and hits Enter -> trigger underlying native file input selection
 
 ### Solution Part 5
 - Fifth part (optional): Extract to partial for re-usability if project has many places with file uploads
