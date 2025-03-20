@@ -48,7 +48,8 @@ bin/dev
   - Follow instructions to enable direct uploads: https://guides.rubyonrails.org/active_storage_overview.html#direct-uploads OR https://api.rubyonrails.org/files/activestorage/README_md.html
   - Try error case again - notice two xhr requests running to create/upload file (first POST gets a signature ID, see Explanation below)
   - Then run `tree` command on `storage` dir, notice this time, there is a new file there
-  - Check in database - any blob?
+  - Check in database - there is a blob
+  - i.e. 2 of the 3 things we need have happened, only thing missing is population of attachment table to associate blob to the model
 
 ### Solution Part 3
 - Third part: Add hidden `expense_report.receipt.signed_id`, but only if `attached?` but not `persisted?`, so that the same selected file request gets submitted again after user fixes validation errors, and then it gets associated with model on saving (this works because this file has already been uploaded to storage from previous form submission attempt AND also populated blob table in database):
