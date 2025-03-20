@@ -32,13 +32,13 @@ bin/dev
 ```
 
 - Demo happy path
+  - debugger on `@expense_report` model in controller after it's successfully saved - inspect `receipt.blob` - notice `id` populated and we can call `signed_id` on it
+  - compare to active storage database tables (one to reference blob/file, another to associate model to blob)
+  - compare to file storage (local, S3, R2, etc.)
+  - i.e. three things need to be true for attachment success (db blob, db attachment, file system)
 - Demo error on new + attach + validation error
-- Demo error on edit + attach + validation error
-- To understand the issue of file upload in a form with validation error, we must first understand how it works when things go well
-  - database tables (one to reference blob/file, another to associate model to blob)
-  - file system (local, S3, R2, etc)
-  - debug inspect `@expense_report.receipt.blob` during happy path - notice `id` populated, notice we can call `signed_id` method on it
   - debug inspect `@expense_report.receipt.blob` during validation error - notice `id` is nil, and calling `signed_id` errors on "new record"
+  - also notice nothing new saved in db active storage tables, and no new file saved in storage file system - i.e. none of the three things we need were done due to validation error
 
 ### Solution Part 1
 - First part of solution is to avoid 500 error - use `persisted?` rather than `attached?` which is only true when there actually exists a file to link to. Avoids error but not great UX because user has to select their file again.
