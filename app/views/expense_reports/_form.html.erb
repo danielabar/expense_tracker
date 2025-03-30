@@ -30,7 +30,7 @@
   <%# If that's the case, we update the custom file input label with the file name from the model so user realizes we still have their file %>
   <div class="my-5"
       data-controller="file-upload"
-      data-file-upload-default-text-value="<%= expense_report.receipt.attached? && !expense_report.receipt.persisted? ? expense_report.receipt.blob.filename : "Choose a file" %>">
+      data-file-upload-default-text-value="<%= expense_report.receipt.attached? && !expense_report.receipt.persisted? ? expense_report.receipt.blob.filename : "No file chosen" %>">
     <%= form.label :receipt %>
 
     <%# If the receipt is attached but not persisted it means user previously attempted to upload but encountered form validation errors %>
@@ -56,7 +56,7 @@
       <button type="button"
           data-file-upload-target="button"
           class="px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-r-md cursor-pointer hover:bg-gray-300">
-        Browse
+        Choose File
       </button>
     </div>
 

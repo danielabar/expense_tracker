@@ -4,7 +4,7 @@ import { Controller } from "@hotwired/stimulus";
 export default class extends Controller {
   static targets = ["input", "label", "button"];
   static values = {
-    defaultText: { type: String, default: 'Choose file...' }
+    defaultText: { type: String, default: 'No file chosen' }
   }
 
   connect() {
