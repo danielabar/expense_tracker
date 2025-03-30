@@ -2,22 +2,22 @@ import { Controller } from "@hotwired/stimulus";
 
 // Connects to data-controller="file-upload"
 export default class extends Controller {
-  static targets = ["input", "label", "button"];
+  static targets = ["input", "fileNameContainer", "button"];
   static values = {
-    defaultText: { type: String, default: 'No file chosen' }
-  }
+    fileSelectionText: { type: String, default: "No file chosen" },
+  };
 
   connect() {
     this.buttonTarget.addEventListener("keydown", this.handleKeyDown);
-    this.updateLabel();
+    this.updateFileName();
   }
 
   disconnect() {
     this.buttonTarget.removeEventListener("keydown", this.handleKeyDown);
   }
 
-  updateLabel() {
-    this.labelTarget.textContent = this.defaultTextValue
+  updateFileName() {
+    this.fileNameContainerTarget.textContent = this.fileSelectionTextValue;
   }
 
   // Accessibility for keyboard users hitting Enter on custom file input button
@@ -28,12 +28,12 @@ export default class extends Controller {
     }
   };
 
-  // When user selects a new file, update the label based on native file input selection
+  // When user selects a new file, update the display based on the native file input selection
   handleNewFileSelection() {
     if (this.inputTarget.files.length > 0) {
-      this.labelTarget.textContent = this.inputTarget.files[0].name;
+      this.fileNameContainerTarget.textContent = this.inputTarget.files[0].name;
     } else {
-      this.updateLabel(); // Reset label if no file selected
+      this.updateFileName(); // Reset display if no file selected
     }
   }
 }
