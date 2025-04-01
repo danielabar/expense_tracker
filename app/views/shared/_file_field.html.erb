@@ -1,5 +1,16 @@
 <%# locals: (form:, object:, attribute:) %>
 
+<%#
+  Render a file input field with custom styling and enhanced behavior using Stimulus.
+  Ensure that selected files persist across form validation errors,
+  preventing users from having to reselect them.
+
+  Locals:
+  - form: The form builder object, used to generate form fields.
+  - object: The model instance being edited, providing access to attached files.
+  - attribute: The attribute representing the file attachment (e.g., :receipt, :approval_document).
+%>
+
 <div class="my-5"
     data-controller="file-upload"
     data-file-upload-file-selection-text-value="<%= object.send(attribute).attached? && !object.send(attribute).persisted? ? object.send(attribute).blob.filename : "No file chosen" %>">
