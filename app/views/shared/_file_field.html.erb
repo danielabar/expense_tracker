@@ -1,3 +1,5 @@
+<%# locals: (form:, object:, attribute:) %>
+
 <div class="my-5"
     data-controller="file-upload"
     data-file-upload-file-selection-text-value="<%= object.send(attribute).attached? && !object.send(attribute).persisted? ? object.send(attribute).blob.filename : "No file chosen" %>">

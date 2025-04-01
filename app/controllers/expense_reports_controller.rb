@@ -29,7 +29,7 @@ class ExpenseReportsController < ApplicationController
         format.html { redirect_to @expense_report, notice: "Expense report was successfully created." }
         format.json { render :show, status: :created, location: @expense_report }
       else
-        debugger
+        # debugger
         format.html { render :new, status: :unprocessable_entity }
         format.json { render json: @expense_report.errors, status: :unprocessable_entity }
       end
