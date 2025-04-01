@@ -15,4 +15,8 @@
     <strong class="block font-medium mb-1">Receipt:</strong>
     <%= link_to expense_report.receipt.filename, expense_report.receipt, class: "text-gray-700 underline hover:no-underline" if expense_report.receipt.attached? %>
   </div>
+  <div>
+    <strong class="block font-medium mb-1">Approval Document:</strong>
+    <%= link_to expense_report.approval_document.filename, expense_report.approval_document, class: "text-gray-700 underline hover:no-underline" if expense_report.approval_document.attached? %>
+  </div>
 </div>

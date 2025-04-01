@@ -26,48 +26,8 @@
     <%= form.date_field :incurred_on, class: ["block shadow-sm rounded-md border px-3 py-2 mt-2 w-full", {"border-gray-400 focus:outline-blue-600": expense_report.errors[:incurred_on].none?, "border-red-400 focus:outline-red-600": expense_report.errors[:incurred_on].any?}] %>
   </div>
 
-  <%# If a file is attached but not persisted, it means user submitted the form with a selected file but also had validation error(s) %>
-  <%# If that's the case, we update the custom file input label with the file name from the model so user realizes we still have their file %>
-  <div class="my-5"
-      data-controller="file-upload"
-      data-file-upload-file-selection-text-value="<%= expense_report.receipt.attached? && !expense_report.receipt.persisted? ? expense_report.receipt.blob.filename : "No file chosen" %>">
-    <%= form.label :receipt %>
-
-    <%# If the receipt is attached but not persisted it means user previously attempted to upload but encountered form validation errors %>
-    <%# Let's hang on to that id for them in a hidden field so file will be persisted on next successful form submission %>
-    <%# This works to reference signed_id because of enabling Active Storage Direct Uploads, the blob is there in the database and in the file system %>
-    <% if expense_report.receipt.attached? && !expense_report.receipt.persisted? %>
-      <%= form.hidden_field :receipt, value: expense_report.receipt.signed_id %>
-    <% end %>
-
-    <div class="relative w-full flex items-center border border-gray-300 bg-gray-50 rounded-md shadow-sm">
-      <%# Native file input (hidden but still functional) %>
-      <%= form.file_field :receipt, direct_upload: true,
-            data: { file_upload_target: "input", action: "change->file-upload#handleNewFileSelection" },
-            class: "absolute inset-0 w-full opacity-0 cursor-pointer" %>
-
-      <%# Custom file input selector that will render on top of the hidden native file input %>
-      <%# This allows us to target it with JavaScript to pre-populate a file name if user previously selected one %>
-      <%# and then submitted the form with validation errors %>
-      <div data-file-upload-target="fileNameContainer"
-          class="flex-1 px-3 py-2 text-gray-700 truncate">
-        <%# Label population is handled by JavaScript: app/javascript/controllers/file_upload_controller.js  %>
-      </div>
-      <button type="button"
-          data-file-upload-target="button"
-          class="px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-r-md cursor-pointer hover:bg-gray-300">
-        Choose File
-      </button>
-    </div>
-
-    <%# Display to user their current attachment if there is one %>
-    <% if expense_report.receipt.persisted? %>
-      <div class="mt-2">
-        <strong class="block font-medium mb-1">Current Receipt:</strong>
-        <%= link_to expense_report.receipt.filename, expense_report.receipt, class: "text-gray-700 underline hover:no-underline" %>
-      </div>
-    <% end %>
-  </div>
+  <%= render "shared/file_field", form: form, object: expense_report, attribute: :receipt %>
+  <%= render "shared/file_field", form: form, object: expense_report, attribute: :approval_document %>
 
   <div class="inline">
     <%= form.submit class: "w-full sm:w-auto rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white inline-block font-medium cursor-pointer" %>

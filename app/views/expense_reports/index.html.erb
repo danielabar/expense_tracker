@@ -19,6 +19,7 @@
             <th class="px-4 py-3 text-left border-b">Amount</th>
             <th class="px-4 py-3 text-left border-b">Description</th>
             <th class="px-4 py-3 text-left border-b">Receipt</th>
+            <th class="px-4 py-3 text-left border-b">Approval</th>
             <th class="px-4 py-3 text-center border-b">Actions</th>
           </tr>
         </thead>
@@ -33,6 +34,13 @@
                   <%= link_to "View", expense_report.receipt, class: "text-blue-600 hover:underline" %>
                 <% else %>
                   <span class="text-gray-400">No receipt</span>
+                <% end %>
+              </td>
+              <td class="px-4 py-3">
+                <% if expense_report.approval_document.attached? %>
+                  <%= link_to "View", expense_report.approval_document, class: "text-blue-600 hover:underline" %>
+                <% else %>
+                  <span class="text-gray-400">No approval</span>
                 <% end %>
               </td>
               <td class="px-4 py-3 text-center space-x-2">
