@@ -1,0 +1,45 @@
+<%# locals: (form:, object:, attribute:) %>
+
+<%#
+  Render a file input field with custom styling and enhanced behavior using Stimulus.
+  Ensure that selected files persist across form validation errors,
+  preventing users from having to reselect them.
+
+  Locals:
+  - form: The form builder object, used to generate form fields.
+  - object: The model instance being edited, providing access to attached files.
+  - attribute: The attribute representing the file attachment (e.g., :receipt, :approval_document).
+%>
+
+<div class="my-5"
+    data-controller="file-upload"
+    data-file-upload-file-selection-text-value="<%= object.send(attribute).attached? && !object.send(attribute).persisted? ? object.send(attribute).blob.filename : "No file chosen" %>">
+
+  <%= form.label attribute %>
+
+  <% if object.send(attribute).attached? && !object.send(attribute).persisted? %>
+    <%= form.hidden_field attribute, value: object.send(attribute).signed_id %>
+  <% end %>
+
+  <div class="relative w-full flex items-center border border-gray-300 bg-gray-50 rounded-md shadow-sm">
+    <%= form.file_field attribute, direct_upload: true,
+          data: { file_upload_target: "input", action: "change->file-upload#handleNewFileSelection" },
+          class: "absolute inset-0 w-full opacity-0 cursor-pointer" %>
+
+    <div data-file-upload-target="fileNameContainer"
+        class="flex-1 px-3 py-2 text-gray-700 truncate">
+    </div>
+    <button type="button"
+        data-file-upload-target="button"
+        class="px-4 py-2 bg-gray-200 text-gray-800 font-medium rounded-r-md cursor-pointer hover:bg-gray-300">
+      Choose File
+    </button>
+  </div>
+
+  <% if object.send(attribute).persisted? %>
+    <div class="mt-2">
+      <strong class="block font-medium mb-1">Current <%= attribute.to_s.humanize %>:</strong>
+      <%= link_to object.send(attribute).filename, object.send(attribute), class: "text-gray-700 underline hover:no-underline" %>
+    </div>
+  <% end %>
+</div>
