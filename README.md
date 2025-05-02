@@ -1,6 +1,6 @@
 # Expense Tracker
 
-A companion project for a blog post demonstrating how to resolve Active Storage file uploads when a form validation occurs.
+A companion project for a [blog post](https://danielabaron.me/blog/active_storage_form_errors/) demonstrating how to resolve Active Storage file uploads when a form validation occurs.
 
 See [merged PRs](https://github.com/danielabar/expense_tracker/pulls?q=is%3Apr+is%3Aclosed+author%3Adanielabar+sort%3Acreated-asc) to understand the solution step by step.
 
